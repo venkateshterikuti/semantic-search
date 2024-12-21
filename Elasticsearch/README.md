@@ -23,13 +23,63 @@ This repository contains a complete pipeline to evaluate the performance of an E
 ├── ground_truth.py          # Script to create ground truth mapping
 ├── precision_recall.py      # Script to evaluate precision and recall
 ├── testing_sample_10000.csv # Example dataset (raw data)
+├── bulk_indexing.py         # Script to index data into Elasticsearch from PostgreSQL
+├── README.md                # Project instructions
+
 ```
 
 ---
 
 ## Step-by-Step Instructions
+### 1. Set Up Elasticsearch
 
-### 1. Data Cleaning
+- Download and install Elasticsearch (7.x or later):
+  - [Elasticsearch Downloads](https://www.elastic.co/downloads/elasticsearch)
+- Start Elasticsearch:
+  ```bash
+  ./bin/elasticsearch
+  ```
+- Verify that Elasticsearch is running by visiting:
+  ```
+  http://localhost:9200
+  ```
+
+### 2. Create Elasticsearch Index
+
+Run the `bulk_indexing.py` script to create the Elasticsearch index and populate it with data from PostgreSQL:
+
+```bash
+python bulk_indexing.py
+```
+
+This script will:
+- Create an index named `products` with the following fields:
+  - `parent_asin` (keyword)
+  - `title` (text)
+  - `features` (text)
+  - `description` (text)
+  - `details` (text)
+- Fetch data from PostgreSQL and index it into Elasticsearch.
+
+#### PostgreSQL Configuration
+- Ensure your PostgreSQL database is running and contains a table with the following columns:
+  - `parent_asin`
+  - `title`
+  - `features`
+  - `description`
+  - `details`
+- Update the PostgreSQL connection settings in `bulk_indexing.py`:
+  ```python
+  psql_config = {
+      "dbname": "your_database_name",
+      "user": "your_username",
+      "password": "your_password",
+      "host": "your_host",
+      "port": "your_port"
+  }
+  ```
+
+### 3. Data Cleaning
 
 The raw dataset (`testing_sample_10000.csv`) contains duplicate entries that need to be removed.
 
@@ -45,7 +95,7 @@ The raw dataset (`testing_sample_10000.csv`) contains duplicate entries that nee
 
 ---
 
-### 2. Data Indexing in Elasticsearch
+### 4. Data Indexing in Elasticsearch
 
 Prepare Elasticsearch to store and retrieve your dataset.
 
@@ -61,7 +111,7 @@ Prepare Elasticsearch to store and retrieve your dataset.
 
 ---
 
-### 3. Creating Ground Truth Mapping
+### 5. Creating Ground Truth Mapping
 
 Generate a mapping of search queries to relevant results (`parent_asin`) for evaluation purposes.
 
@@ -77,7 +127,7 @@ Generate a mapping of search queries to relevant results (`parent_asin`) for eva
 
 ---
 
-### 4. Precision and Recall Evaluation
+### 6. Precision and Recall Evaluation
 
 Evaluate Elasticsearch search results using precision and recall metrics.
 
@@ -93,6 +143,18 @@ Evaluate Elasticsearch search results using precision and recall metrics.
 
 ---
 
+### 6. Run the Flask Application
+
+Start the Flask application to search products and fetch detailed information from PostgreSQL:
+
+```bash
+python app.py
+```
+
+The application will be available at `http://127.0.0.1:5000`.
+
+---
+
 ## Outputs
 
 1. **Data Cleaning**:
@@ -101,6 +163,8 @@ Evaluate Elasticsearch search results using precision and recall metrics.
    - `ground_truth.json`: Query-to-relevant-results mapping for evaluation.
 3. **Evaluation Metrics**:
    - Precision@10 and Recall@10 for each query, along with overall averages printed to the console.
+4. **Elasticsearch Index**:
+   - Indexed product data in Elasticsearch under the `products` index.
 
 ---
 
@@ -111,6 +175,3 @@ Evaluate Elasticsearch search results using precision and recall metrics.
 - Example dataset (`testing_sample_10000.csv`) should be placed in the same directory as the scripts.
 
 ---
-
-
-
